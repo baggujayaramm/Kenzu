@@ -1,0 +1,172 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                  String               @id @default(uuid()) @db.Uuid
+  name                String               @db.VarChar(100)
+  email               String               @unique @db.VarChar(255)
+  password            String?
+  phone               String?              @db.VarChar(20)
+  avatarUrl           String?
+  tier                String               @default("standard") @db.VarChar(20)
+  onboarded           Boolean              @default(false)
+  timezone            String?              @db.VarChar(50)
+  language            String               @default("en") @db.VarChar(10)
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @default(now()) @updatedAt
+  profile             UserProfile?
+  healthMetrics       HealthMetric[]
+  moodLogs            MoodLog[]
+  habits              Habit[]
+  habitLogs           HabitLog[]
+  notifications       Notification[]
+  partnerIntegrations PartnerIntegration[]
+  subscriptions       UserSubscription[]
+  dailyBriefings      DailyBriefing[]
+
+  @@map("users")
+}
+
+model UserProfile {
+  id             String   @id @default(uuid()) @db.Uuid
+  userId         String   @unique @db.Uuid
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  age            Int?
+  gender         String?  @db.VarChar(20)
+  heightCm       Float?
+  weightKg       Float?
+  fitnessGoal    String?  @db.VarChar(50)
+  dietType       String?  @db.VarChar(50)
+  meditationExp  String?  @db.VarChar(30)
+  interests      String[]
+  lifestyle      Json?
+  
+  @@map("user_profiles")
+}
+
+model HealthMetric {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @db.Uuid
+  user       User     @relation(fields: [userId], references: [id])
+  metricType String   @db.VarChar(50)
+  value      Float?
+  unit       String?  @db.VarChar(20)
+  source     String?  @db.VarChar(50)
+  recordedAt DateTime?
+  createdAt  DateTime @default(now())
+
+  @@map("health_metrics")
+}
+
+model MoodLog {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @db.Uuid
+  user         User     @relation(fields: [userId], references: [id])
+  moodScore    Int?     
+  moodLabel    String?  @db.VarChar(30)
+  journalEntry String?
+  tags         String[]
+  loggedAt     DateTime @default(now())
+
+  @@map("mood_logs")
+}
+
+model Habit {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @db.Uuid
+  user        User     @relation(fields: [userId], references: [id])
+  title       String   @db.VarChar(100)
+  description String?
+  frequency   String?  @db.VarChar(20)
+  targetCount Int      @default(1)
+  category    String?  @db.VarChar(50)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  logs        HabitLog[]
+
+  @@map("habits")
+}
+
+model HabitLog {
+  id          String   @id @default(uuid()) @db.Uuid
+  habitId     String   @db.Uuid
+  habit       Habit    @relation(fields: [habitId], references: [id])
+  userId      String   @db.Uuid
+  user        User     @relation(fields: [userId], references: [id])
+  completedAt DateTime @default(now())
+  notes       String?
+
+  @@map("habit_logs")
+}
+
+model Notification {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @db.Uuid
+  user       User     @relation(fields: [userId], references: [id])
+  type       String?  @db.VarChar(50)
+  title      String   @db.VarChar(200)
+  body       String?
+  isRead     Boolean  @default(false)
+  actionUrl  String?
+  createdAt  DateTime @default(now())
+
+  @@map("notifications")
+}
+
+model PartnerIntegration {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @db.Uuid
+  user         User     @relation(fields: [userId], references: [id])
+  partnerName  String   @db.VarChar(100)
+  accessToken  String?
+  refreshToken String?
+  scopes       String[]
+  isActive     Boolean  @default(true)
+  connectedAt  DateTime @default(now())
+  expiresAt    DateTime?
+
+  @@map("partner_integrations")
+}
+
+model UserSubscription {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @db.Uuid
+  user         User     @relation(fields: [userId], references: [id])
+  serviceName  String   @db.VarChar(100)
+  amount       Decimal? @db.Decimal(10,2)
+  currency     String   @default("INR") @db.VarChar(10)
+  billingCycle String?  @db.VarChar(20)
+  nextBilling  DateTime? @db.Date
+  isTracked    Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  @@map("user_subscriptions")
+}
+
+model DailyBriefing {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id])
+  date      DateTime @default(now()) @db.Date
+  greeting  String?
+  quote     String?
+  insight   String?  @db.Text
+  createdAt DateTime @default(now())
+
+  @@unique([userId, date])
+  @@map("daily_briefings")
+}
+
+model Waitlist {
+  id        String   @id @default(uuid()) @db.Uuid
+  email     String   @unique @db.VarChar(255)
+  tierAdded String   @default("elite") @db.VarChar(20)
+  createdAt DateTime @default(now())
+
+  @@map("waitlist")
+}

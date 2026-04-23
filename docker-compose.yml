@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  # Database
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: kenzu_user
+      POSTGRES_PASSWORD: kenzu_password
+      POSTGRES_DB: kenzu_db
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # Cache
+  redis:
+    image: redis:alpine
+    restart: always
+    ports:
+      - '6379:6379'
+
+  # NestJS Backend
+  backend:
+    build: ./backend
+    restart: always
+    depends_on:
+      - db
+      - redis
+    environment:
+      DATABASE_URL: postgresql://kenzu_user:kenzu_password@db:5432/kenzu_db?schema=public
+      PORT: 3000
+      JWT_SECRET: super_secret_kenzu_key_2026
+    ports:
+      - '3000:3000'
+
+  # Next.js Web Portal
+  web:
+    build: ./web
+    restart: always
+    depends_on:
+      - backend
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:3000
+      PORT: 3001
+    ports:
+      - '3001:3001'
+
+volumes:
+  postgres_data:

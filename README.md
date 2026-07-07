@@ -24,7 +24,6 @@ docker-compose up --build
 ## 📄 Documentation
 For a complete audit of the build history and technical specifications, see:
 - [KENZU_COMPLETE_PROJECT_REPORT.md](file:///c:/Users/baggu/Dev/Kenzu/KENZU_COMPLETE_PROJECT_REPORT.md)
-- [antigravity_project_plan.md](file:///c:/Users/baggu/Dev/Kenzu/antigravity_project_plan.md) (Master Vision)
 
 ---
 © 2026 Kenzu. Rise above the noise.
